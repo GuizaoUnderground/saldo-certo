@@ -40,7 +40,7 @@ Escaneie o QR code que aparece no terminal com o Expo Go (Android) ou com a câm
 npm test
 ```
 
-São 14 testes de unidade (`tests/`), cobrindo:
+São 26 testes de unidade (`tests/`), cobrindo:
 
 - valores em reais e datas;
 - validação de lançamentos;
