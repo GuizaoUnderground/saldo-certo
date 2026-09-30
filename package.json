@@ -1,0 +1,23 @@
+{
+  "name": "saldo-certo",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "test": "tsx --import ./tests/fakes/registrar.mjs --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "instalar-dependencias": "npx expo install expo-sqlite expo-status-bar react-native-safe-area-context react react-native @types/react"
+  },
+  "dependencies": {
+    "expo": "~55.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "*",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

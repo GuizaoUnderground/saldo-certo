@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Saldo Certo",
+    "slug": "saldo-certo",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "br.edu.unochapeco.saldocerto"
+    },
+    "android": {
+      "package": "br.edu.unochapeco.saldocerto"
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
+  }
+}

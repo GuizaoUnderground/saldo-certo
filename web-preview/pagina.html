@@ -1,0 +1,68 @@
+<title>Saldo Certo</title>
+<style>
+:root{
+  --fundo:#EEF2EF; --tinta:#16201B; --suave:#55635C; --linha:#D3DDD7; --acento:#146C43; --acento-t:#FFFFFF;
+  --moldura:#1C2420; --cartao:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --fundo:#101613; --tinta:#E6EDE9; --suave:#9AAAA2; --linha:#27332D; --acento:#5FC293; --acento-t:#0C1510; --moldura:#000000; --cartao:#17201B; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --fundo:#101613; --tinta:#E6EDE9; --suave:#9AAAA2; --linha:#27332D; --acento:#5FC293; --acento-t:#0C1510; --moldura:#000000; --cartao:#17201B; color-scheme:dark; }
+*{box-sizing:border-box}
+html,body{background:var(--fundo)}
+body{color:var(--tinta);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:24px 16px 40px}
+.wrap{max-width:960px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:40px;align-items:start}
+.lado{padding-top:24px;max-width:46ch}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);font-weight:600}
+h1{font-size:40px;line-height:1.05;margin:8px 0 12px;letter-spacing:-.02em;text-wrap:balance}
+h1 span{color:var(--acento)}
+p{line-height:1.55;margin:0 0 14px;color:var(--suave);font-size:15px}
+h2{font-size:15px;margin:22px 0 8px}
+ol{margin:0;padding-left:20px;color:var(--suave);font-size:15px;line-height:1.55}
+ol li{margin-bottom:4px}
+.botoes{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+button.b{font:inherit;font-size:14px;font-weight:600;padding:9px 14px;border-radius:10px;border:1.5px solid var(--acento);background:var(--acento);color:var(--acento-t);cursor:pointer}
+button.b.sec{background:transparent;color:var(--acento)}
+button.b:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
+.nota{font-size:13px;border-top:1px solid var(--linha);padding-top:12px;margin-top:22px}
+.celular{width:390px;height:min(820px,calc(100dvh - 48px));min-height:640px;background:var(--moldura);border-radius:46px;padding:12px;box-shadow:0 20px 50px rgba(20,40,30,.18)}
+#app{position:relative;width:100%;height:100%;border-radius:36px;overflow:hidden;background:#F4F6F5;display:flex;flex-direction:column;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#18211D}
+#app > div{flex:1;min-height:0}
+.rn-scroll{scrollbar-width:thin}
+@media (max-width:820px){
+  .wrap{grid-template-columns:1fr;gap:20px}
+  .lado{padding-top:0;max-width:none}
+  h1{font-size:32px}
+  .celular{width:100%;max-width:420px;margin:0 auto;height:760px;min-height:0;border-radius:36px;padding:8px}
+  #app{border-radius:30px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+<div class="wrap">
+  <section class="lado">
+    <div class="eyebrow">Protótipo · TCC de Ciência da Computação · Unochapecó</div>
+    <h1>Saldo <span>Certo</span></h1>
+    <p>Aplicativo de controle financeiro para quem vive com renda próxima do salário mínimo: registra o que entra e sai, mostra quanto ainda dá para gastar por dia e onde o dinheiro foi gasto em cada mês.</p>
+    <p>Esta é a versão do TCC I. Metas de gasto por categoria, contas fixas e alertas de vencimento entram no TCC II. O aplicativo abre com dados de exemplo de um mês típico, com salário de R$ 1.621,00.</p>
+    <h2>Roteiro sugerido</h2>
+    <ol>
+      <li>Registre um gasto pelo botão “Registrar gasto ou receita”.</li>
+      <li>Veja o valor por dia e a lista “Onde mais gastei” mudarem.</li>
+      <li>Em Lançamentos, filtre por gastos ou receitas e exclua um item.</li>
+      <li>Abra o Relatório e compare com o mês anterior.</li>
+    </ol>
+    <div class="botoes">
+      <button class="b" id="btn-exemplo" type="button">Recomeçar com exemplo</button>
+      <button class="b sec" id="btn-vazio" type="button">Começar vazio</button>
+    </div>
+    <p class="nota">Prévia no navegador gerada a partir do mesmo código do aplicativo. No celular, o Saldo Certo roda com React Native e Expo, e guarda os dados em SQLite no próprio aparelho. Aqui os dados ficam só neste navegador.</p>
+  </section>
+  <div class="celular"><div id="app" aria-label="Tela do aplicativo Saldo Certo"></div></div>
+</div>
+<script>
+__APP_JS__
+</script>
+<script>
+document.getElementById('btn-exemplo').addEventListener('click',function(){window.saldoCerto&&window.saldoCerto.recomecar('exemplo')});
+document.getElementById('btn-vazio').addEventListener('click',function(){window.saldoCerto&&window.saldoCerto.recomecar('vazio')});
+</script>
