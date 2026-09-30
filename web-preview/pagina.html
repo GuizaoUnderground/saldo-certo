@@ -42,20 +42,20 @@ button.b:focus-visible{outline:3px solid var(--acento);outline-offset:2px}
   <section class="lado">
     <div class="eyebrow">Protótipo · TCC de Ciência da Computação · Unochapecó</div>
     <h1>Saldo <span>Certo</span></h1>
-    <p>Aplicativo de controle financeiro para quem vive com renda próxima do salário mínimo: registra o que entra e sai, mostra quanto ainda dá para gastar por dia e onde o dinheiro foi gasto em cada mês.</p>
-    <p>Esta é a versão do TCC I. Metas de gasto por categoria, contas fixas e alertas de vencimento entram no TCC II. O aplicativo abre com dados de exemplo de um mês típico, com salário de R$ 1.621,00.</p>
+    <p>Aplicativo de controle financeiro para quem vive com renda próxima do salário mínimo: registra o que entra e sai, mostra quanto ainda dá para gastar por dia, acompanha limites por categoria e avisa antes das contas vencerem.</p>
+    <p>O aplicativo abre com dados de exemplo de um mês típico, com salário de R$ 1.621,00, algumas contas fixas e metas para mercado, transporte e lazer.</p>
     <h2>Roteiro sugerido</h2>
     <ol>
       <li>Registre um gasto pelo botão “Registrar gasto ou receita”.</li>
-      <li>Veja o valor por dia e a lista “Onde mais gastei” mudarem.</li>
-      <li>Em Lançamentos, filtre por gastos ou receitas e exclua um item.</li>
+      <li>Em Metas, defina um limite para uma categoria nova.</li>
+      <li>Em Contas, toque em “Paguei” na internet e veja o painel mudar.</li>
       <li>Abra o Relatório e compare com o mês anterior.</li>
     </ol>
     <div class="botoes">
       <button class="b" id="btn-exemplo" type="button">Recomeçar com exemplo</button>
       <button class="b sec" id="btn-vazio" type="button">Começar vazio</button>
     </div>
-    <p class="nota">Prévia no navegador gerada a partir do mesmo código do aplicativo. No celular, o Saldo Certo roda com React Native e Expo, e guarda os dados em SQLite no próprio aparelho. Aqui os dados ficam só neste navegador.</p>
+    <p class="nota">Prévia no navegador gerada a partir do mesmo código do aplicativo. No celular, o Saldo Certo roda com React Native e Expo, guarda os dados em SQLite no aparelho e agenda notificações de vencimento. Aqui os dados ficam só neste navegador.</p>
   </section>
   <div class="celular"><div id="app" aria-label="Tela do aplicativo Saldo Certo"></div></div>
 </div>

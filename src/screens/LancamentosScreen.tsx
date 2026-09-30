@@ -30,8 +30,9 @@ export function LancamentosScreen({ novoLancamento }: { novoLancamento: () => vo
     if (g && g.data === l.data) g.itens.push(l); else grupos.push({ data: l.data, itens: [l] });
   }
 
-  async function excluir(id: number, descricao: string) {
-    const ok = await confirmar('Excluir lançamento', `Deseja excluir "${descricao}"?`, 'Excluir');
+  async function excluir(id: number, descricao: string, deConta: boolean) {
+    const ok = await confirmar('Excluir lançamento',
+      `Deseja excluir "${descricao}"?${deConta ? ' A conta voltará a aparecer como não paga.' : ''}`, 'Excluir');
     if (ok) await app.excluirLancamento(id);
   }
 
@@ -61,15 +62,15 @@ export function LancamentosScreen({ novoLancamento }: { novoLancamento: () => vo
             {g.itens.map((l, i) => {
               const cat = catPorId.get(l.categoriaId);
               return (
-                <Pressable key={l.id} onLongPress={() => excluir(l.id, l.descricao)}
+                <Pressable key={l.id} onLongPress={() => excluir(l.id, l.descricao, l.contaId !== null)}
                   style={[st.linha, { paddingVertical: 10, borderTopWidth: i ? 1 : 0, borderTopColor: cores.borda }]}>
                   <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: cat?.cor ?? '#999', marginRight: 10 }} />
                   <View style={{ flex: 1 }}>
                     <Text style={[st.texto, { fontWeight: '600' }]} numberOfLines={1}>{l.descricao}</Text>
-                    <Text style={st.suave}>{cat?.nome}</Text>
+                    <Text style={st.suave}>{cat?.nome}{l.contaId !== null ? ' · conta paga' : ''}</Text>
                   </View>
                   <Valor centavos={l.valorCentavos} tipo={l.tipo} />
-                  <Pressable onPress={() => excluir(l.id, l.descricao)} accessibilityLabel={`Excluir ${l.descricao}`}
+                  <Pressable onPress={() => excluir(l.id, l.descricao, l.contaId !== null)} accessibilityLabel={`Excluir ${l.descricao}`}
                     hitSlop={10} style={{ paddingLeft: 12 }}>
                     <Text style={{ color: cores.textoSuave, fontSize: 18 }}>✕</Text>
                   </Pressable>

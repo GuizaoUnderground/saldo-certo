@@ -19,7 +19,7 @@ async function criarExemplo() {
   const d = (m: string, n: number) => dataVencimento(m, n);
 
   const add = (m: string, n: number, tipo: 'receita' | 'despesa', desc: string, v: number, cat: string) =>
-    repo.inserirLancamento({ tipo, descricao: desc, valorCentavos: v, data: d(m, n), categoriaId: c(cat) });
+    repo.inserirLancamento({ tipo, descricao: desc, valorCentavos: v, data: d(m, n), categoriaId: c(cat), contaId: null });
 
   // mês anterior
   await add(ant, 5, 'receita', 'Salário', 162100, 'Salário');
@@ -29,11 +29,18 @@ async function criarExemplo() {
   await add(ant, 14, 'despesa', 'Aniversário do primo', 9000, 'Lazer');
   await add(ant, 22, 'despesa', 'Farmácia', 5290, 'Saúde');
 
-  // contas fixas do mês anterior (lançadas como despesas comuns no TCC I)
-  await add(ant, 10, 'despesa', 'Aluguel', 65000, 'Moradia');
-  await add(ant, 15, 'despesa', 'Conta de luz', 12000, 'Contas da casa');
-  await add(ant, 20, 'despesa', 'Conta de água', 6500, 'Contas da casa');
-  await add(ant, 25, 'despesa', 'Internet', 9990, 'Contas da casa');
+  // contas recorrentes
+  const contas = [
+    ['Aluguel', 65000, 10, 'Moradia'], ['Conta de luz', 12000, 15, 'Contas da casa'],
+    ['Conta de água', 6500, 20, 'Contas da casa'], ['Internet', 9990, Math.min(dia, 28), 'Contas da casa'],
+    ['Plano do celular', 3500, Math.min(dia + 3, 28), 'Contas da casa'],
+  ] as const;
+  for (const [nome, v, venc, cat] of contas) {
+    const id = await repo.inserirConta({ descricao: nome, valorCentavos: v, diaVencimento: venc, diasAntecedencia: 3, categoriaId: c(cat), ativa: true });
+    const conta = (await repo.listarContas()).find(x => x.id === id)!;
+    await repo.pagarConta(conta, ant, d(ant, venc));
+    if (nome === 'Aluguel' || nome === 'Conta de luz') await repo.pagarConta(conta, mes, d(mes, Math.min(venc, dia)));
+  }
 
   // mês atual (só até hoje)
   const atuais: [number, 'receita' | 'despesa', string, number, string][] = [
@@ -46,10 +53,12 @@ async function criarExemplo() {
     [16, 'despesa', 'Uber para consulta', 2500, 'Transporte'],
     [16, 'despesa', 'Farmácia', 3890, 'Saúde'],
     [20, 'despesa', 'Pizza no sábado', 5500, 'Lazer'],
-    [10, 'despesa', 'Aluguel', 65000, 'Moradia'],
-    [15, 'despesa', 'Conta de luz', 12000, 'Contas da casa'],
   ];
   for (const [n, t, desc, v, cat] of atuais) if (n <= dia) await add(mes, n, t, desc, v, cat);
+
+  await repo.salvarMeta(c('Supermercado'), 45000);
+  await repo.salvarMeta(c('Transporte'), 12000);
+  await repo.salvarMeta(c('Lazer'), 6000);
 }
 
 let raiz: ReturnType<typeof createRoot> | null = null;

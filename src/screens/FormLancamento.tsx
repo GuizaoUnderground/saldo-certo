@@ -36,7 +36,7 @@ export function FormLancamento({ visivel, onFechar }: { visivel: boolean; onFech
     if (!dataISO) { setErro('Digite a data no formato dia/mês/ano, por exemplo 05/09/2026.'); return; }
     const novo = {
       tipo, valorCentavos: centavos, descricao: descricao || (app.categorias.find(c => c.id === categoriaId)?.nome ?? ''),
-      categoriaId: categoriaId ?? -1, data: dataISO,
+      categoriaId: categoriaId ?? -1, data: dataISO, contaId: null,
     };
     const msg = validarLancamento(novo, app.categorias);
     if (msg) { setErro(msg); return; }

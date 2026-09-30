@@ -3,7 +3,7 @@
 import { Repositorio } from './Repositorio';
 import { Armazenamento, RepositorioMemoria } from './RepositorioMemoria';
 
-export const CHAVE_WEB = 'saldo-certo:tcc1';
+export const CHAVE_WEB = 'saldo-certo:v1';
 let copia: string | null = null;
 
 export const armazenamentoWeb: Armazenamento & { limpar(): void } = {

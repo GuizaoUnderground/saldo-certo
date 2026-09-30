@@ -7,7 +7,7 @@ import { nomeDoMes, somarMeses } from '../domain/datas';
 import { Cartao, Secao, SeletorMes, Tela, Vazio, st } from '../ui/componentes';
 import { cores, espaco } from '../ui/tema';
 
-/** RF06: despesas por categoria e comparação com o mês anterior */
+/** RF12: despesas por categoria e comparação com o mês anterior */
 export function RelatorioScreen() {
   const app = useApp();
   const rel = useMemo(() => relatorioMensal(app.lancamentos, app.categorias, app.mes), [app.lancamentos, app.categorias, app.mes]);

@@ -6,15 +6,8 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "br.edu.unochapeco.saldocerto"
-    },
-    "android": {
-      "package": "br.edu.unochapeco.saldocerto"
-    },
-    "plugins": [
-      "expo-sqlite"
-    ]
+    "ios": { "supportsTablet": false, "bundleIdentifier": "br.edu.unochapeco.saldocerto" },
+    "android": { "package": "br.edu.unochapeco.saldocerto" },
+    "plugins": ["expo-sqlite", "expo-notifications"]
   }
 }

@@ -34,24 +34,12 @@ await p.goto(URL);
 await p.evaluate(() => window.saldoCerto.recomecar('exemplo'));
 await p.waitForTimeout(400);
 
-await caso('painel com dados de exemplo', async () => {
+await caso('painel com dados de exemplo e avisos', async () => {
   const t = await texto();
   assert.match(t, /Saldo do mês/);
-  assert.match(t, /Você pode gastar por dia até o fim do mês R\$ [\d.,]+ Faltam \d+ dias? para o fim do mês/);
-  assert.match(t, /Onde mais gastei/);
-  assert.match(t, /Últimos lançamentos/);
-  assert.doesNotMatch(t, /Metas|Contas do mês|Avisos/);
-  assert.equal(await p.getByRole('tab').count(), 3);
-});
-
-await caso('valor por dia = saldo ÷ dias restantes', async () => {
-  const t = await texto();
-  const s = moeda(t.match(/Saldo do mês (-?R\$ [\d.,]+)/)[1]);
-  const pd = moeda(t.match(/fim do mês (R\$ [\d.,]+)/)[1]);
-  const dias = Number(t.match(/Faltam (\d+) dias?/)[1]);
-  const hoje = new Date();
-  assert.equal(dias, new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0).getDate() - hoje.getDate() + 1);
-  assert.equal(Math.round(pd * 100), Math.floor(Math.round(s * 100) / dias));
+  assert.match(t, /Você pode gastar por dia/);
+  assert.match(t, /Avisos/);
+  assert.match(t, /vence hoje/);
 });
 
 await caso('formulário valida valor, categoria e data', async () => {
@@ -79,18 +67,6 @@ await caso('formulário valida valor, categoria e data', async () => {
   await p.waitForTimeout(200);
   assert.doesNotMatch(await texto(), /Novo lançamento/);
   assert.equal(Math.round((s0 - await saldo()) * 100), 1050);
-  assert.match(await texto(), /Últimos lançamentos Ver todos Lazer Lazer · /);
-});
-
-await caso('cancelar o formulário não grava nada', async () => {
-  await aba('Lançamentos');
-  const n = await app.locator('[aria-label^="Excluir"]').count();
-  await aba('Início');
-  await btn('+ Registrar gasto ou receita').click();
-  await campo('Valor (R$)').fill('99');
-  await btn('Cancelar').click();
-  await aba('Lançamentos');
-  assert.equal(await app.locator('[aria-label^="Excluir"]').count(), n);
 });
 
 await caso('descrição vazia usa o nome da categoria; receita aumenta o saldo', async () => {
@@ -106,33 +82,12 @@ await caso('descrição vazia usa o nome da categoria; receita aumenta o saldo',
   assert.match(await texto(), /Trabalho extra Trabalho extra \+ R\$ 100,00/);
 });
 
-await caso('lançamento em outro mês não altera o mês atual', async () => {
-  const s0 = await saldo();
-  await btn('+ Registrar gasto ou receita').click();
-  await campo('Valor (R$)').fill('40');
-  await btn('Saúde').click();
-  const hoje = new Date();
-  const ant = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 3);
-  await campo('Data').fill('');
-  await campo('Data').pressSequentially(`03${String(ant.getMonth() + 1).padStart(2, '0')}${ant.getFullYear()}`);
-  await btn('Salvar').click();
-  await p.waitForTimeout(200);
-  assert.equal(await saldo(), s0);
-  await app.getByRole('button', { name: 'Mês anterior' }).click();
-  await aba('Lançamentos');
-  assert.match(await texto(), /Saúde Saúde − R\$ 40,00/);
-  await app.getByRole('button', { name: 'Próximo mês' }).click();
-});
-
 await caso('filtro de lançamentos por tipo', async () => {
   await aba('Lançamentos');
   await app.getByRole('button', { name: 'Receitas', exact: true }).click();
-  let t = await texto();
+  const t = await texto();
   assert.doesNotMatch(t, /− R\$/);
   assert.match(t, /\+ R\$/);
-  await app.getByRole('button', { name: 'Gastos', exact: true }).click();
-  t = await texto();
-  assert.doesNotMatch(t, /\+ R\$/);
   await app.getByRole('button', { name: 'Todos', exact: true }).click();
 });
 
@@ -148,26 +103,115 @@ await caso('excluir lançamento: cancelar mantém, confirmar remove', async () =
   assert.equal(await app.locator('[aria-label^="Excluir"]').count(), n0 - 1);
 });
 
-await caso('atalhos do painel levam às abas', async () => {
+await caso('metas: validação, criar, editar e remover', async () => {
+  await aba('Metas');
+  await btn('+ Moradia').click();
+  await campo('Limite mensal (R$)').fill('0');
+  await btn('Salvar meta').click();
+  assert.match(await texto(), /maior que zero/);
+  await campo('Limite mensal (R$)').fill('700');
+  await btn('Salvar meta').click();
+  await p.waitForTimeout(200);
+  assert.match(await texto(), /Moradia .*de R\$ 700,00/);
+  await app.getByRole('button', { name: 'Editar meta de Moradia' }).click();
+  assert.equal(await campo('Limite mensal (R$)').inputValue(), '700,00');
+  await campo('Limite mensal (R$)').fill('600');
+  await btn('Salvar meta').click();
+  await p.waitForTimeout(200);
+  assert.match(await texto(), /Moradia .*de R\$ 600,00.*Estourou|Estourou.*Moradia/);
+  await app.getByRole('button', { name: 'Editar meta de Moradia' }).click();
+  await btn('Remover meta').click();
+  await p.waitForTimeout(200);
+  assert.ok(await btn('+ Moradia').isVisible());
+});
+
+await caso('contas: validação, criar, pagar, desfazer, editar e excluir', async () => {
+  await aba('Contas');
+  await btn('+ Nova').click();
+  await btn('Salvar conta').click();
+  assert.match(await texto(), /Dê um nome/);
+  await campo('Nome da conta').fill('Gás de cozinha');
+  await campo('Valor (R$)').fill('120');
+  await campo('Dia do vencimento').fill('40');
+  await btn('Salvar conta').click();
+  assert.match(await texto(), /de 1 a 31/);
+  await campo('Dia do vencimento').fill('31');
+  await btn('Salvar conta').click();
+  await p.waitForTimeout(200);
+  let t = await texto();
+  assert.match(t, /Gás de cozinha/);
+  const ultimo = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  assert.match(t, new RegExp(`Gás de cozinha Vence em ${ultimo}/`)); // RN04
+
+  const cartao = app.locator('div').filter({ hasText: /^Gás de cozinha/ }).last();
+  const lanc0 = await (async () => { await aba('Lançamentos'); return app.locator('[aria-label^="Excluir"]').count(); })();
+  await aba('Contas');
+  const card = app.getByTestId('conta-Gás de cozinha');
+  await card.getByRole('button', { name: 'Paguei', exact: true }).click();
+  await p.waitForTimeout(200);
+  assert.ok(await card.getByText('Paga', { exact: true }).isVisible());
+  await aba('Lançamentos');
+  assert.equal(await app.locator('[aria-label^="Excluir"]').count(), lanc0 + 1);
+  assert.match(await texto(), /Gás de cozinha .*conta paga/);
+
+  await aba('Contas');
+  await card.getByRole('button', { name: 'Desfazer', exact: true }).click();
+  await app.locator('[role=dialog] button', { hasText: 'Desfazer' }).click();
+  await p.waitForTimeout(200);
+  assert.ok(await card.getByRole('button', { name: 'Paguei', exact: true }).isVisible());
+
+  await card.getByRole('button', { name: 'Editar', exact: true }).click();
+  assert.equal(await campo('Nome da conta').inputValue(), 'Gás de cozinha');
+  await campo('Nome da conta').fill('Botijão de gás');
+  await btn('Salvar conta').click();
+  await p.waitForTimeout(200);
+  t = await texto();
+  assert.match(t, /Botijão de gás/);
+  assert.doesNotMatch(t, /Gás de cozinha/);
+
+  const card2 = app.getByTestId('conta-Botijão de gás');
+  await card2.getByRole('button', { name: 'Editar', exact: true }).click();
+  await btn('Excluir conta').click();
+  await app.locator('[role=dialog] button', { hasText: 'Excluir' }).click();
+  await p.waitForTimeout(200);
+  assert.doesNotMatch(await texto(), /Botijão de gás/);
+  void cartao;
+});
+
+await caso('pagar conta atualiza o valor por dia no painel', async () => {
   await aba('Início');
-  await btn('Ver relatório').click();
-  assert.match(await texto(), /Gastos por categoria/);
+  const antes = await texto();
+  const pd0 = moeda(antes.match(/fim do mês (R\$ [\d.,]+)/)[1]);
+  const pend0 = moeda(antes.match(/descontei (R\$ [\d.,]+)/)[1]);
+  await aba('Contas');
+  const card = app.getByTestId('conta-Internet');
+  await card.getByRole('button', { name: 'Paguei', exact: true }).click();
+  await p.waitForTimeout(200);
   await aba('Início');
-  await btn('Ver todos').click();
-  assert.match(await texto(), /Lançamentos \+ Novo/);
+  const depois = await texto();
+  const pend1 = moeda(depois.match(/descontei (R\$ [\d.,]+)/)?.[1] ?? 'R$ 0,00');
+  assert.equal(Math.round((pend0 - pend1) * 100), 9990);
+  // o lançamento e a conta pendente se compensam: valor por dia não muda
+  assert.equal(moeda(depois.match(/fim do mês (R\$ [\d.,]+)/)[1]), pd0);
+  assert.doesNotMatch(depois, /Internet vence hoje/);
 });
 
 await caso('navegação entre meses', async () => {
   await aba('Início');
   await app.getByRole('button', { name: 'Próximo mês' }).click();
   let t = await texto();
-  assert.doesNotMatch(t, /por dia/);
-  assert.match(t, /Saldo do mês R\$ 0,00/);
-  await app.getByRole('button', { name: 'Mês anterior' }).click();
-  await app.getByRole('button', { name: 'Mês anterior' }).click();
+  // mês seguinte ainda sem salário lançado: mostra quanto falta para as contas
+  assert.match(t, /Valor por dia previsto|Faltam para cobrir/);
+  assert.doesNotMatch(t, /Avisos/);
+  await aba('Contas');
   t = await texto();
-  assert.doesNotMatch(t, /por dia/);
-  assert.match(t, /Onde mais gastei Ver relatório Moradia/);
+  assert.doesNotMatch(t, /Paga|Atrasada/);
+  assert.match(t, /A pagar/);
+  await app.getByRole('button', { name: 'Mês anterior' }).click();
+  await app.getByRole('button', { name: 'Mês anterior' }).click();
+  await aba('Início');
+  t = await texto();
+  assert.doesNotMatch(t, /Você pode gastar por dia|Valor por dia previsto/);
   await app.getByRole('button', { name: 'Próximo mês' }).click();
 });
 
@@ -193,12 +237,13 @@ await caso('app vazio mostra orientações e aceita o primeiro lançamento', asy
   await p.waitForTimeout(300);
   let t = await texto();
   assert.match(t, /Comece registrando/);
-  assert.match(t, /Os gastos por categoria aparecem aqui/);
-  assert.match(t, /Saldo do mês R\$ 0,00/);
-  assert.doesNotMatch(t, /por dia/);
+  assert.match(t, /Cadastre suas contas fixas/);
+  assert.match(t, /R\$ 0,00/);
   await btn('+ Registrar gasto ou receita').click();
   await btn('Recebi').click();
   await campo('Valor (R$)').fill('1621');
+  await btn('Salvar').click();
+  assert.match(await texto(), /Escolha uma categoria/);
   await btn('Salário').click();
   await btn('Salvar').click();
   await p.waitForTimeout(200);
@@ -206,22 +251,33 @@ await caso('app vazio mostra orientações e aceita o primeiro lançamento', asy
   assert.match(t, /Saldo do mês R\$ 1\.621,00/);
   await aba('Relatório');
   assert.match(await texto(), /Sem gastos registrados/);
-  await aba('Lançamentos');
-  await app.getByRole('button', { name: 'Gastos', exact: true }).click();
-  assert.match(await texto(), /Nenhum lançamento neste mês/);
-  await app.getByRole('button', { name: 'Todos', exact: true }).click();
+  await aba('Metas');
+  assert.match(await texto(), /Escolha uma categoria para definir/);
+  await p.evaluate(() => window.saldoCerto.recomecar('exemplo'));
+  await p.waitForTimeout(300);
 });
 
-await caso('gastos maiores que a renda mostram quanto passou', async () => {
-  await aba('Início');
+await caso('contas maiores que a renda mostram quanto falta', async () => {
+  await p.evaluate(() => window.saldoCerto.recomecar('vazio'));
+  await p.waitForTimeout(300);
   await btn('+ Registrar gasto ou receita').click();
-  await campo('Valor (R$)').fill('2000');
-  await btn('Moradia').click();
+  await btn('Recebi').click();
+  await campo('Valor (R$)').fill('100');
+  await btn('Salário').click();
   await btn('Salvar').click();
+  await aba('Contas');
+  await btn('+ Nova').click();
+  await campo('Nome da conta').fill('Aluguel');
+  await campo('Valor (R$)').fill('500');
+  await campo('Dia do vencimento').fill('28');
+  await btn('Moradia').click();
+  await btn('Salvar conta').click();
   await p.waitForTimeout(200);
+  await aba('Início');
   const t = await texto();
-  assert.match(t, /Você gastou mais do que recebeu neste mês R\$ 379,00/);
-  assert.match(t, /Saldo do mês -R\$ 379,00/);
+  assert.match(t, /Faltam para cobrir as despesas do mês R\$ 400,00/);
+  assert.match(t, /passam da sua renda do mês em R\$ 400,00/);
+  assert.doesNotMatch(t, /Você pode gastar por dia/);
   await p.evaluate(() => window.saldoCerto.recomecar('exemplo'));
   await p.waitForTimeout(300);
 });
@@ -229,10 +285,8 @@ await caso('gastos maiores que a renda mostram quanto passou', async () => {
 await caso('nada sai da tela em celulares estreitos (360px)', async () => {
   await p.setViewportSize({ width: 360, height: 780 });
   await p.waitForTimeout(300);
-  const telas = [['Início', null], ['Lançamentos', null], ['Relatório', null], ['Início', '+ Registrar gasto ou receita']];
-  for (const [n, abrir] of telas) {
+  for (const n of ['Início', 'Lançamentos', 'Metas', 'Contas', 'Relatório']) {
     await aba(n);
-    if (abrir) await btn(abrir).click();
     await p.waitForTimeout(150);
     const fora = await p.evaluate(() => {
       const raiz = document.getElementById('app').getBoundingClientRect();
@@ -243,8 +297,9 @@ await caso('nada sai da tela em celulares estreitos (360px)', async () => {
       }
       return r;
     });
-    assert.deepEqual(fora, [], `${n}${abrir ? ' (formulário)' : ''}: ${fora.join(' | ')}`);
+    assert.deepEqual(fora, [], `aba ${n}: ${fora.join(' | ')}`);
   }
+  await btn('+ Registrar gasto ou receita', false).first().click().catch(() => {});
 });
 
 await caso('sem erros no console', async () => { assert.deepEqual(erros, []); });

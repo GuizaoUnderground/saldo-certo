@@ -77,7 +77,7 @@ export function Campo({ rotulo, erro, ...props }: TextInputProps & { rotulo: str
   );
 }
 
-// ------------------------------------------------------------------ Seletor de mês (RF07)
+// ------------------------------------------------------------------ Seletor de mês (RF13)
 export function SeletorMes({ mes, onChange }: { mes: MesISO; onChange: (m: MesISO) => void }) {
   return (
     <View style={st.seletorMes}>

@@ -5,15 +5,19 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AppProvider, useApp } from './src/state/AppContext';
 import { InicioScreen } from './src/screens/InicioScreen';
 import { LancamentosScreen } from './src/screens/LancamentosScreen';
+import { MetasScreen } from './src/screens/MetasScreen';
+import { ContasScreen } from './src/screens/ContasScreen';
 import { RelatorioScreen } from './src/screens/RelatorioScreen';
 import { FormLancamento } from './src/screens/FormLancamento';
 import { cores } from './src/ui/tema';
 
-type Aba = 'inicio' | 'lancamentos' | 'relatorio';
+type Aba = 'inicio' | 'lancamentos' | 'metas' | 'contas' | 'relatorio';
 
 const ABAS: { id: Aba; rotulo: string; icone: string }[] = [
   { id: 'inicio', rotulo: 'Início', icone: '⌂' },
   { id: 'lancamentos', rotulo: 'Lançamentos', icone: '≡' },
+  { id: 'metas', rotulo: 'Metas', icone: '◎' },
+  { id: 'contas', rotulo: 'Contas', icone: '▦' },
   { id: 'relatorio', rotulo: 'Relatório', icone: '▮' },
 ];
 
@@ -32,6 +36,8 @@ function Conteudo() {
       <View style={{ flex: 1 }}>
         {aba === 'inicio' && <InicioScreen irPara={a => setAba(a as Aba)} novoLancamento={novo} />}
         {aba === 'lancamentos' && <LancamentosScreen novoLancamento={novo} />}
+        {aba === 'metas' && <MetasScreen />}
+        {aba === 'contas' && <ContasScreen />}
         {aba === 'relatorio' && <RelatorioScreen />}
       </View>
       <View style={s.barra} accessibilityRole="tablist">

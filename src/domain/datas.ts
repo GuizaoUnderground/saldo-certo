@@ -65,9 +65,8 @@ export function diferencaDias(a: DataISO, b: DataISO): number {
 }
 
 /**
- * Data de um dia em determinado mês: se o dia não existe no mês
- * (ex.: 31 de abril), usa o último dia. Será usada no TCC II para
- * calcular o vencimento das contas recorrentes.
+ * Data de vencimento de uma conta em determinado mês (RN04):
+ * se o dia não existe no mês (ex.: 31 de abril), usa o último dia.
  */
 export function dataVencimento(mes: MesISO, dia: number): DataISO {
   const ultimo = diasNoMes(mes);
