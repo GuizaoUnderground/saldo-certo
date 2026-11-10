@@ -62,7 +62,17 @@ await caso('formulário valida valor, categoria e data', async () => {
   await campo('Valor (R$)').fill('abc');
   await btn('Salvar').click();
   assert.match(await texto(), /Digite o valor/);
-  await campo('Valor (R$)').fill('10,50');
+  await campo('Valor (R$)').pressSequentially('5000'); // os dígitos entram pelos centavos, como nos aplicativos de banco
+  assert.equal(await campo('Valor (R$)').inputValue(), '50,00');
+  await campo('Valor (R$)').fill('');
+  await campo('Valor (R$)').pressSequentially('2000000001');
+  await btn('Lazer').click();
+  await btn('Salvar').click();
+  assert.match(await texto(), /O valor máximo de um lançamento é R\$ 20\.000\.000,00/);
+  await btn('Gastei').click(); // limpa a categoria escolhida
+  await campo('Valor (R$)').fill('');
+  await campo('Valor (R$)').pressSequentially('1050');
+  assert.equal(await campo('Valor (R$)').inputValue(), '10,50');
   await btn('Salvar').click();
   assert.match(await texto(), /Escolha uma categoria/);
   await btn('Lazer').click();
@@ -71,6 +81,11 @@ await caso('formulário valida valor, categoria e data', async () => {
   assert.equal(await campo('Data').inputValue(), '31/02/2026');
   await btn('Salvar').click();
   assert.match(await texto(), /formato dia\/mês\/ano/);
+  await campo('Data').fill('');
+  await campo('Data').pressSequentially('010199'); // ano com dois dígitos não é aceito
+  await btn('Salvar').click();
+  assert.match(await texto(), /com o ano completo/);
+  assert.match(await texto(), /Novo lançamento/);
   await campo('Data').fill('');
   const hoje = new Date();
   const dd = String(hoje.getDate()).padStart(2, '0'), mm = String(hoje.getMonth() + 1).padStart(2, '0');
@@ -97,7 +112,7 @@ await caso('descrição vazia usa o nome da categoria; receita aumenta o saldo',
   const s0 = await saldo();
   await btn('+ Registrar gasto ou receita').click();
   await btn('Recebi').click();
-  await campo('Valor (R$)').fill('100');
+  await campo('Valor (R$)').fill('100,00');
   await btn('Trabalho extra').click();
   await btn('Salvar').click();
   await p.waitForTimeout(200);
@@ -109,7 +124,7 @@ await caso('descrição vazia usa o nome da categoria; receita aumenta o saldo',
 await caso('lançamento em outro mês não altera o mês atual', async () => {
   const s0 = await saldo();
   await btn('+ Registrar gasto ou receita').click();
-  await campo('Valor (R$)').fill('40');
+  await campo('Valor (R$)').fill('40,00');
   await btn('Saúde').click();
   const hoje = new Date();
   const ant = new Date(hoje.getFullYear(), hoje.getMonth() - 1, 3);
@@ -198,7 +213,7 @@ await caso('app vazio mostra orientações e aceita o primeiro lançamento', asy
   assert.doesNotMatch(t, /por dia/);
   await btn('+ Registrar gasto ou receita').click();
   await btn('Recebi').click();
-  await campo('Valor (R$)').fill('1621');
+  await campo('Valor (R$)').fill('1621,00');
   await btn('Salário').click();
   await btn('Salvar').click();
   await p.waitForTimeout(200);
@@ -215,7 +230,7 @@ await caso('app vazio mostra orientações e aceita o primeiro lançamento', asy
 await caso('gastos maiores que a renda mostram quanto passou', async () => {
   await aba('Início');
   await btn('+ Registrar gasto ou receita').click();
-  await campo('Valor (R$)').fill('2000');
+  await campo('Valor (R$)').fill('2000,00');
   await btn('Moradia').click();
   await btn('Salvar').click();
   await p.waitForTimeout(200);

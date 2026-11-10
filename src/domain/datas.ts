@@ -44,12 +44,11 @@ export function formatarData(data: DataISO): string {
   return `${d}/${m}/${a}`;
 }
 
-/** "25/09/2026" -> "2026-09-25" (ou null se inválida) */
+/** "25/09/2026" -> "2026-09-25" (ou null se inválida). O ano precisa ter 4 dígitos. */
 export function lerDataBR(texto: string): DataISO | null {
-  const m = texto.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/);
+  const m = texto.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!m) return null;
-  const [dia, mes] = [Number(m[1]), Number(m[2])];
-  const ano = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
+  const [dia, mes, ano] = [Number(m[1]), Number(m[2]), Number(m[3])];
   if (mes < 1 || mes > 12 || dia < 1) return null;
   if (dia > diasNoMes(`${ano}-${pad(mes)}`)) return null;
   return `${ano}-${pad(mes)}-${pad(dia)}`;

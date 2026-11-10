@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useApp } from '../state/AppContext';
 import { TipoMovimento } from '../domain/types';
-import { converterParaCentavos } from '../domain/dinheiro';
+import { converterParaCentavos, mascaraValor } from '../domain/dinheiro';
 import { formatarData, lerDataBR, mascaraData } from '../domain/datas';
 import { validarLancamento } from '../domain/regras';
 import { Botao, Campo, SeletorCategoria, SeletorTipo, st } from '../ui/componentes';
@@ -33,7 +33,7 @@ export function FormLancamento({ visivel, onFechar }: { visivel: boolean; onFech
     const centavos = converterParaCentavos(valor);
     if (centavos === null || centavos <= 0) { setErro('Digite o valor, por exemplo 25,90.'); return; }
     const dataISO = lerDataBR(data);
-    if (!dataISO) { setErro('Digite a data no formato dia/mês/ano, por exemplo 05/09/2026.'); return; }
+    if (!dataISO) { setErro('Digite a data no formato dia/mês/ano, com o ano completo, por exemplo 05/09/2026.'); return; }
     const novo = {
       tipo, valorCentavos: centavos, descricao: descricao || (app.categorias.find(c => c.id === categoriaId)?.nome ?? ''),
       categoriaId: categoriaId ?? -1, data: dataISO,
@@ -52,7 +52,7 @@ export function FormLancamento({ visivel, onFechar }: { visivel: boolean; onFech
   return (
     <Folha visivel={visivel} titulo="Novo lançamento" onFechar={onFechar}>
       <SeletorTipo tipo={tipo} onChange={t => { setTipo(t); setCategoriaId(null); }} />
-      <Campo rotulo="Valor (R$)" value={valor} onChangeText={setValor} keyboardType="decimal-pad" placeholder="0,00" autoFocus />
+      <Campo rotulo="Valor (R$)" value={valor} onChangeText={t => setValor(mascaraValor(t))} keyboardType="number-pad" placeholder="0,00" autoFocus />
       <Text style={st.rotulo}>Categoria</Text>
       <SeletorCategoria categorias={categorias} selecionada={categoriaId} onChange={setCategoriaId} />
       <Campo rotulo="Descrição (opcional)" value={descricao} onChangeText={setDescricao}

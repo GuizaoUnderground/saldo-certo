@@ -1,5 +1,9 @@
 /** Utilitários para valores monetários em centavos (RNF06). */
 
+/** Valor máximo de um lançamento: R$ 20.000.000,00 */
+export const VALOR_MAXIMO_CENTAVOS = 2_000_000_000;
+const MAX_DIGITOS = String(VALOR_MAXIMO_CENTAVOS).length;
+
 /** Formata centavos como moeda brasileira: 123456 -> "R$ 1.234,56" */
 export function formatarMoeda(centavos: number): string {
   const negativo = centavos < 0;
@@ -27,7 +31,20 @@ export function converterParaCentavos(texto: string): number | null {
   }
   if (!/^\d+(\.\d{1,2})?$/.test(t)) return null;
   const [inteiro, dec = ''] = t.split('.');
-  return Number(inteiro) * 100 + Number(dec.padEnd(2, '0'));
+  const centavos = Number(inteiro) * 100 + Number(dec.padEnd(2, '0'));
+  // acima de 2^53 o JavaScript já não representa os centavos com exatidão
+  return Number.isSafeInteger(centavos) ? centavos : null;
+}
+
+/**
+ * Máscara de digitação no estilo dos aplicativos de banco: os dígitos entram
+ * pelos centavos. Digitando 5, 0, 0, 0: "0,05" -> "0,50" -> "5,00" -> "50,00".
+ * Sem dígitos (ou só zeros) devolve "", e o campo mostra a dica "0,00".
+ */
+export function mascaraValor(texto: string): string {
+  const digitos = texto.replace(/\D/g, '').replace(/^0+/, '').slice(0, MAX_DIGITOS);
+  if (!digitos) return '';
+  return formatarMoeda(Number(digitos)).replace('R$ ', '');
 }
 
 /** Formata centavos para edição em campo de texto: 1250 -> "12,50" */

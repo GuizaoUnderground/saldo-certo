@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { centavosParaTexto, converterParaCentavos, formatarMoeda } from '../src/domain/dinheiro';
+import { centavosParaTexto, converterParaCentavos, formatarMoeda, mascaraValor } from '../src/domain/dinheiro';
 import { diasNoMes, diferencaDias, formatarData, lerDataBR, mascaraData, nomeDoMes, somarMeses } from '../src/domain/datas';
 import {
   disponivelPorDia, gastosPorCategoria, lancamentosDoMes, relatorioMensal, resumoDoMes, validarLancamento,
@@ -33,6 +33,22 @@ test('dinheiro: leitura do valor digitado', () => {
   assert.equal(converterParaCentavos(' 7,5 '), 750);
   for (const invalido of ['abc', '1,234', '', '0,001', '-10', '10,']) assert.equal(converterParaCentavos(invalido), null, invalido);
   for (const c of [1, 99, 100, 1050, 162100, 99999999]) assert.equal(converterParaCentavos(centavosParaTexto(c)), c);
+  // valores que o JavaScript não representa com exatidão são recusados
+  assert.equal(converterParaCentavos('99999999999999999'), null);
+
+  // máscara no estilo dos aplicativos de banco: os dígitos entram pelos centavos
+  let campo = '';
+  const digitar = (tecla: string) => (campo = mascaraValor(campo + tecla));
+  const apagar = () => (campo = mascaraValor(campo.slice(0, -1)));
+  assert.deepEqual(['5', '0', '0', '0'].map(digitar), ['0,05', '0,50', '5,00', '50,00']);
+  assert.deepEqual([apagar(), apagar(), apagar(), apagar(), apagar()], ['5,00', '0,50', '0,05', '', '']);
+  assert.equal(mascaraValor('0'), '');
+  assert.equal(mascaraValor('abc'), '');
+  assert.equal(mascaraValor('162100'), '1.621,00');
+  assert.equal(mascaraValor('1.621,00'), '1.621,00');
+  assert.equal(mascaraValor('2000000000'), '20.000.000,00');
+  assert.equal(mascaraValor('99.999.999,999'), '99.999.999,99'); // o 11º dígito é ignorado
+  for (const c of [1, 5, 99, 100, 1050, 162100, 2000000000]) assert.equal(converterParaCentavos(mascaraValor(String(c))), c);
 });
 
 test('datas: meses, ano bissexto e virada de ano', () => {
@@ -48,7 +64,8 @@ test('datas: meses, ano bissexto e virada de ano', () => {
 
 test('datas: leitura de dd/mm/aaaa e máscara de digitação', () => {
   assert.equal(lerDataBR('5/9/2026'), '2026-09-05');
-  assert.equal(lerDataBR('25/09/26'), '2026-09-25');
+  assert.equal(lerDataBR('25/09/26'), null); // o ano precisa ter 4 dígitos
+  assert.equal(lerDataBR('01/01/99'), null);
   assert.equal(lerDataBR('29/02/2028'), '2028-02-29');
   assert.equal(lerDataBR('29/02/2027'), null);
   assert.equal(lerDataBR('31/02/2026'), null);
@@ -64,6 +81,10 @@ test('RN01: validação do lançamento', () => {
   assert.equal(validarLancamento(base, cats), null);
   assert.equal(validarLancamento({ ...base, valorCentavos: 0 }, cats), 'Informe um valor maior que zero.');
   assert.equal(validarLancamento({ ...base, valorCentavos: 10.5 }, cats), 'Informe um valor maior que zero.');
+  // valor máximo de um lançamento: R$ 20.000.000,00
+  assert.equal(validarLancamento({ ...base, valorCentavos: 2000000000 }, cats), null);
+  assert.equal(validarLancamento({ ...base, valorCentavos: 2000000001 }, cats), 'O valor máximo de um lançamento é R$ 20.000.000,00.');
+  assert.equal(validarLancamento({ ...base, valorCentavos: 1e19 }, cats), 'O valor máximo de um lançamento é R$ 20.000.000,00.');
   assert.equal(validarLancamento({ ...base, categoriaId: 1 }, cats), 'A categoria escolhida não combina com o tipo do lançamento.');
   assert.ok(validarLancamento({ ...base, descricao: '  ' }, cats));
   // sem categoria e sem descrição: a mensagem deve pedir a categoria

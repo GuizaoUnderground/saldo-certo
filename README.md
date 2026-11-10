@@ -42,7 +42,7 @@ npm test
 
 São 14 testes de unidade (`tests/`), cobrindo:
 
-- valores em reais e datas;
+- valores em reais (incluindo a digitação a partir dos centavos) e datas;
 - validação de lançamentos;
 - resumo do mês, valor disponível por dia e relatório;
 - o SQL real do `RepositorioSQLite`.
@@ -70,7 +70,7 @@ Arquivos com final `.web.ts` são usados só quando o app roda no navegador: o M
 
 | Código | Regra | Onde está |
 |---|---|---|
-| RN01 | Valor > 0 e categoria compatível com o tipo | `validarLancamento` |
+| RN01 | Valor > 0, até R$ 20.000.000,00, e categoria compatível com o tipo | `validarLancamento` |
 | RN02 | Lançamentos do mês do mais recente para o mais antigo | `lancamentosDoMes` |
 | RN03 | Saldo do mês ÷ dias restantes, contando hoje | `disponivelPorDia` |
 | RN04 | Relatório por categoria com comparação ao mês anterior | `relatorioMensal` |

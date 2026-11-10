@@ -5,11 +5,13 @@
  */
 import { Categoria, DataISO, Lancamento, MesISO, NovoLancamento } from './types';
 import { diasNoMes, mesDe, somarMeses } from './datas';
+import { VALOR_MAXIMO_CENTAVOS, formatarMoeda } from './dinheiro';
 
 // ------------------------------------------------------------------ validação
-/** RN01: valor positivo e categoria compatível com o tipo */
+/** RN01: valor positivo, até o valor máximo, e categoria compatível com o tipo */
 export function validarLancamento(l: NovoLancamento, categorias: Categoria[]): string | null {
   if (!Number.isInteger(l.valorCentavos) || l.valorCentavos <= 0) return 'Informe um valor maior que zero.';
+  if (l.valorCentavos > VALOR_MAXIMO_CENTAVOS) return `O valor máximo de um lançamento é ${formatarMoeda(VALOR_MAXIMO_CENTAVOS)}.`;
   const cat = categorias.find(c => c.id === l.categoriaId);
   if (!cat) return 'Escolha uma categoria.';
   if (cat.tipo !== l.tipo) return 'A categoria escolhida não combina com o tipo do lançamento.';
